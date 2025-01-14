@@ -5,6 +5,7 @@ date: today
 format: 
   html:
     code-fold: true
+    self-contained: true
 execute:
   message: false
   warning: false
@@ -100,3 +101,12 @@ data.frame(year = as.character(c(1990, 1993, 1996, 1999, 2001, 2003, 2005, 2007,
 ```
 
  - In the years that have been evaluated with FT-NIRS there are similar numbers of hauls and samples, however more samples from additional years will be necessary to fully examine incorporating these data into the assessment. 
+ 
+## Next steps
+
+ - Establish aging error matrix
+   + Is there an age-error matrix currently available, if not can we set one up?
+   + The methods in [Hulson and Williams 2024](https://www.sciencedirect.com/science/article/pii/S0165783623002874?via%3Dihub) are probably not directly applicable, as we re-sampled from multiple age reads from different people, my (limited) understanding of FT-NIRS is that this is not how aging error would be determined? An adjustment may be needed to accurately account for this error.
+  - Initiate input sample size for samples in hand (bootstrap re-sampling based upon haul and sex, based on Hulson and Williams 2024). Now that I have the bottom trawl data linked with the FT-NIRS ages I can get started on this. 
+  - Could more otoliths be aged for additional years? The higher the sample size the better, with a particular focus on keeping the number of hauls sampled from high.
+
