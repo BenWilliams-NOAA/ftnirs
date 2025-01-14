@@ -1,5 +1,7 @@
 ---
 title: "GOA northen rockfish FT-NIRS"
+author: Ben Williams
+date: today
 format: 
   html:
     code-fold: true
@@ -72,6 +74,7 @@ ggplot() +
 Removing Aleutian Island samples results in a sample size of 1,553.
 
 ```{r}
+#| tbl-cap: "Number of ages (n) and number of hauls by year available from FT-NIRS analysis for the GOA northern rockfish assessment."
 dat %>% 
   distinct(haul, year) %>% 
   summarise(hauls = n(), .by = year) -> hls
@@ -86,12 +89,14 @@ dat %>%
 For comparison the last full assessment (2024) had more years and hauls. 
 
 ```{r}
+#| tbl-cap: "Number of ages (n) and number of hauls by year used in the 2024 GOA northern rockfish assessment."
 data.frame(year = as.character(c(1990, 1993, 1996, 1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 
                     2017, 2019, 2021, 2023)),
            n = c(331, 242, 462, 278, 466, 216, 417, 605, 651, 430, 495, 465, 462, 368, 512, 572),
            hauls = c(12, 17, 19, 27, 85, 22, 72, 82, 69, 74, 68, 56, 80, 64, 68, 48)) %>% 
+  bind_rows(summarise(., across(c(n, hauls), sum), across(year, ~"Total"))) %>% 
   flextable()
 
 ```
 
-In the years that have been evaluated with FT-NIRS there are similar numbers of hauls and samples observed, however more samples from additional years will be necessary to fully examine incorporating these data into the assessment. 
+ - In the years that have been evaluated with FT-NIRS there are similar numbers of hauls and samples, however more samples from additional years will be necessary to fully examine incorporating these data into the assessment. 
