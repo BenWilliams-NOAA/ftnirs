@@ -1,0 +1,97 @@
+---
+title: "GOA northen rockfish FT-NIRS"
+format: 
+  html:
+    code-fold: true
+execute:
+  message: false
+  warning: false
+    
+---
+
+All code and data can be found on [github](https://github.com/BenWilliams-NOAA/ftnirs). 
+
+```{r}
+# load ----
+library(tidytable)
+library(ggplot2)
+library(here)
+library(vroom)
+library(readxl)
+library(PBSmapping)
+library(flextable)
+```
+
+## Initial data examination
+
+To start I downloaded data from the NOAA fisheries [In Port](https://www.fisheries.noaa.gov/inport/item/73040).
+These data are in the `data` folder of this repo.
+
+```{r}
+vroom(here::here("data","AGP_MMCNN_NRF2013to2019.csv")) %>% 
+  select(sample, final_age, latitude, longitude, length, sex) -> agp 
+glimpse(agp) 
+```
+
+However, more associated data are needed to generate age compositions for the GOA northern rockfish assessment. 
+I received the same data with associated survey cruise numbers and haul id from Jon Short 2024-12-18.
+
+```{r}
+read_excel(here::here("data", "nrf_traintunetest_predictions_with_haul.xlsx")) %>%
+            rename(vessel=vessel_code, specimenid=specimen_number) -> dat # update has haul id
+glimpse(dat)
+```
+
+To align all of the necessary data columns I pulled in all survey locations from the GOA that include northern rockfish (code for this is in the `data_call.R` script), then filter the FT-NIRS data to only include GOA samples as there are AI samples as well.
+
+```{r}
+vroom(here::here("data", "goa_specimen_data.csv")) -> bts # GOA bottom trawl survey all sites
+dat %>% 
+  left_join(bts) %>% 
+  filter(!is.na(start_longitude)) -> dat
+# glimpse(dat)
+```
+
+```{r}
+#| fig.cap: "Red points are locations for Aleutian Island samples, blue point are from the Gulf of Alaska."
+# map data
+data('nepacLLhigh')
+nepacLLhigh %>%
+  dplyr::select(group=PID, POS=POS,long=X, lat=Y) -> ak
+
+ggplot() +
+  geom_polygon(data = ak, aes(long, lat, group = group), fill=8, color='black') +
+  theme(panel.background = element_rect(fill = 'white')) +
+  xlab(expression(paste(Longitude^o,~'W'))) +
+  ylab(expression(paste(Latitude^o,~'W'))) +
+  geom_point(data = agp, aes(longitude, latitude), color = 'red') +
+  geom_point(data = bts, aes(start_longitude, start_latitude), color = 'blue', alpha = 1) +
+  coord_map(xlim = c(-180, -145), ylim = c(50, 61))
+```
+
+Removing Aleutian Island samples results in a sample size of 1,553.
+
+```{r}
+dat %>% 
+  distinct(haul, year) %>% 
+  summarise(hauls = n(), .by = year) -> hls
+
+  dat %>% 
+  summarise(n = n(), .by = year) %>% 
+    left_join(hls) %>% 
+  bind_rows(summarise(., across(c(n, hauls), sum), across(year, ~"Total"))) %>% 
+  flextable()
+```
+
+For comparison the last full assessment (2024) had more years and hauls. 
+
+```{r}
+data.frame(year = as.character(c(1990, 1993, 1996, 1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015, 
+                    2017, 2019, 2021, 2023)),
+           n = c(331, 242, 462, 278, 466, 216, 417, 605, 651, 430, 495, 465, 462, 368, 512, 572),
+           hauls = c(12, 17, 19, 27, 85, 22, 72, 82, 69, 74, 68, 56, 80, 64, 68, 48)) %>% 
+  flextable()
+
+```
+
+In the years that have been evaluated with FT-NIRS there are similar numbers of hauls and samples observed, however more samples from additional years will be necessary to fully examine incorporating these data into the assessment. 
